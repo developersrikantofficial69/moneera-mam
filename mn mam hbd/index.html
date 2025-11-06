@@ -1,0 +1,171 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Happy Birthday Mam 🎉</title>
+<style>
+  :root{--bg:#fff7f2;--card:#ffffff;--accent:#ff6b81;--muted:#6b6b6b}
+  *{box-sizing:border-box;font-family:Inter,system-ui,Segoe UI,Roboto,"Helvetica Neue",Arial}
+  body{margin:0;min-height:100vh;background:linear-gradient(180deg,#fff7f2 0%, #ffeef0 100%);display:flex;align-items:center;justify-content:center;padding:24px}
+  .wrap{width:100%;max-width:900px;display:grid;grid-template-columns:1fr 420px;gap:24px;align-items:center}
+  .left{padding:28px;background:var(--card);border-radius:16px;box-shadow:0 10px 30px rgba(0,0,0,0.06)}
+  h1{margin:0 0 8px;font-size:28px;color:#222}
+  .sub{color:var(--muted);margin:0 0 18px}
+  .message{background:linear-gradient(90deg,rgba(255,107,129,0.06),rgba(255,195,200,0.03));padding:16px;border-radius:12px;border:1px dashed rgba(255,107,129,0.12);color:#333;line-height:1.5}
+  .actions{margin-top:18px;display:flex;gap:12px;flex-wrap:wrap}
+  .btn{background:var(--accent);color:white;border:none;padding:10px 14px;border-radius:10px;cursor:pointer;font-weight:600;box-shadow:0 6px 18px rgba(255,107,129,0.18)}
+  .btn.ghost{background:transparent;color:var(--accent);border:2px solid rgba(255,107,129,0.14)}
+  .left .notes{margin-top:14px;color:var(--muted);font-size:13px}
+  .right{display:flex;flex-direction:column;gap:14px;align-items:center}
+  .photo{width:100%;max-width:380px;border-radius:14px;overflow:hidden;box-shadow:0 18px 40px rgba(0,0,0,0.08);border:6px solid rgba(255,255,255,0.8)}
+  .photo img{display:block;width:100%;height:100%;object-fit:cover}
+  .card-mini{background:white;padding:12px;border-radius:12px;width:100%;text-align:center}
+  .guests{display:flex;gap:8px;flex-wrap:wrap;justify-content:center}
+  .guest{background:linear-gradient(90deg,#fff 0,#fff);padding:8px 10px;border-radius:999px;border:1px solid rgba(0,0,0,0.06);font-size:13px;color:#333}
+  footer{grid-column:1/-1;margin-top:12px;text-align:center;color:var(--muted);font-size:13px}
+
+/* confetti canvas overlay */
+canvas#confetti{position:fixed;left:0;top:0;pointer-events:none;z-index:999}
+@media(max-width:900px){
+  .wrap{grid-template-columns:1fr;align-items:stretch}
+  .right{order:-1}
+}
+</style>
+<script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js">
+</script>
+</head>
+<body>
+<canvas id="confetti"></canvas>
+
+<div class="wrap">
+  <div class="left">
+    <h1>Happy Birthday, Mam! 🎂</h1>
+    <p class="sub">For <strong id="mamName">moneera mam'mm</strong> — with lots of love from your students.</p>
+
+    <div class="message" id="mainMessage">
+      Dear Mam, <br><br>
+      Aap humari inspiration hain — aaj ke din hum dua karte hain ke aapki zindagi khushiyon se bhari rahe. Thank you for all the guidance and patience. Happy Birthday to you with alot of love! ❤
+    </div>
+
+    <div class="actions">
+      <button class="btn" id="playSong">Play Surprise Song</button>
+      <button class="btn ghost" id="toggleConfetti">Celebrate 🎉</button>
+      <button class="btn ghost" id="downloadEcard">Download as PNG</button>
+    </div>
+
+    <p class="notes">Tip: Click "Celebrate" for confetti. Use "Download" to save this e-card image and share on WhatsApp / Instagram.</p>
+  </div>
+
+  <div class="right">
+    <div class="photo card-mini" id="photoCard">
+      <!-- Replace src with your teacher's photo or a nice background -->
+      <img id="mamPhoto" src="mamphoto.jpg" alt="Mam Photo">
+    </div>
+
+    <div class="card-mini">
+      <strong>Short wishes from classmates</strong>
+      <div class="guests" id="guestList">
+        <span class="guest"><b> SRIKANT: Happy birthday Mam!</b> </span>
+        <span class="guest"><b> NIKHIL: Many happy returns! of the day</b> </span>
+        <span class="guest"><b> BADAL : happy birthday to you mam ❤ </b></span>
+      </div>
+    </div>
+  </div>
+
+  <footer>Made with ♥ — by srikant,nikhil,and badal</footer>
+</div>
+
+<!-- Audio (replace with a hosted song if you want) -->
+<audio id="song" src="musicwish.mp3"></audio>
+
+<script>
+/* --- Simple confetti --- */
+const canvas = document.getElementById('confetti');
+const ctx = canvas.getContext('2d');
+let W = canvas.width = innerWidth;
+let H = canvas.height = innerHeight;
+window.addEventListener('resize', ()=>{W=canvas.width=innerWidth;H=canvas.height=innerHeight});
+
+const colors = ["#FF6B81","#FFD166","#06D6A0","#4DA6FF","#B28DFF"];
+let pieces = [];
+function createConfetti(){
+  for(let i=0;i<120;i++){
+    pieces.push({
+      x: Math.random()*W,
+      y: Math.random()*H - H,
+      r: Math.random()*8 + 4,
+      d: Math.random()*40 + 10,
+      tilt: Math.random()*10 - 10,
+      color: colors[Math.floor(Math.random()*colors.length)],
+      tiltAngleIncrement: Math.random()*0.07 + 0.05
+    });
+  }
+}
+function drawConfetti(){
+  ctx.clearRect(0,0,W,H);
+  pieces.forEach((p,i)=>{
+    p.tilt += p.tiltAngleIncrement;
+    p.y += Math.sin(p.d) + 1 + p.r/8;
+    p.x += Math.cos(p.d);
+    ctx.beginPath();
+    ctx.fillStyle = p.color;
+    ctx.fillRect(p.x + p.tilt, p.y, p.r, p.r/2);
+    if(p.y > H + 20){ pieces.splice(i,1) }
+  });
+}
+let confettiTimer;
+function startConfetti(){
+  if(pieces.length===0) createConfetti();
+  if(confettiTimer) return;
+  confettiTimer = setInterval(()=>{
+    drawConfetti();
+    if(pieces.length===0){ stopConfetti() }
+  }, 16);
+}
+function stopConfetti(){
+  clearInterval(confettiTimer);
+  confettiTimer = null;
+  ctx.clearRect(0,0,W,H);
+}
+
+/* --- Buttons --- */
+document.getElementById('toggleConfetti').addEventListener('click', ()=>{
+  if(confettiTimer) stopConfetti();
+  else startConfetti();
+});
+
+/* --- Play a short chime --- */
+document.getElementById('playSong').addEventListener('click', ()=>{
+  const audio = document.getElementById('song');
+  audio.play();
+});
+ 
+
+/* --- Small download as PNG (screenshot of card) --- */
+document.getElementById("downloadEcard").addEventListener("click", () => {
+  const card = document.querySelector(".wrap");
+
+  html2canvas(card, {
+    scale: 2,
+    backgroundColor: "#ffffff"
+  }).then(canvas => {
+    const link = document.createElement("a");
+    link.download = "birthday-card.png";
+    link.href = canvas.toDataURL("image/png");
+    link.click();
+  });
+});
+
+/* --- Small customization helpers (change name/photo/message easily) --- */
+/* To edit: change values here or directly in HTML above. */
+const mamName = document.getElementById('mamName');
+const mamPhoto = document.getElementById('mamPhoto');
+const mainMessage = document.getElementById('mainMessage');
+
+/* Example: you can run these in dev console to customize quickly:
+   mamName.textContent = "Ms. Priya"; mamPhoto.src = "photo.jpg"; mainMessage.innerHTML = "Your custom message";
+*/
+</script>
+</body>
+</html>
